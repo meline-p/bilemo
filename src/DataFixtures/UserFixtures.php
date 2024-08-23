@@ -28,7 +28,6 @@ class UserFixtures extends Fixture
             $user->setFirstName($first_name);
             $user->setLastName($last_name);
             $user->setEmail(strtolower($first_name).'.'.strtolower($last_name).'@gmail.com');
-            $user->setPassword(password_hash($faker->password(), PASSWORD_DEFAULT));
 
             // get customer reference
             $customer = $this->getReference('customer-'.rand(1,5));
