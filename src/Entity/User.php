@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -18,18 +19,22 @@ class User
 
     #[ORM\Column(length: 255)]
     #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Assert\NotBlank(message: "Le pseudo de l'utilisateur est obligatoire")]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Assert\NotBlank(message: "Le prénom de l'utilisateur est obligatoire")]
     private ?string $first_name = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Assert\NotBlank(message: "Le nom de l'utilisateur est obligatoire")]
     private ?string $last_name = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Assert\NotBlank(message: "L'email de l'utilisateur est obligatoire")]
     private ?string $email = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
