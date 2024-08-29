@@ -7,6 +7,7 @@ use App\Repository\CustomerRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,22 +15,32 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CustomerController extends AbstractController
 {
     #[Route('/api/customers/{customer_id}/users', name: 'app_customers_users_list', methods:['GET'])]
+    #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour accèder aux utilisateurs")]
     public function getCustomerUsers(
         int $customer_id, 
         CustomerRepository $customerRepository, 
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        Security $security
         ): JsonResponse
     {
+
         $customer = $customerRepository->find($customer_id);
 
         if(!$customer){
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Le client n'existe pas.");
+        }
+
+        $customerAuthenticate = $security->getUser();
+        
+        if($customerAuthenticate !== $customer){
+            throw new HttpException(JsonResponse::HTTP_FORBIDDEN, "Accès refusé : vous n'avez pas les droits pour accèder aux utilisateurs");
         }
 
         $jsonCustomer = $serializer->serialize($customer, 'json', ['groups' => 'getCustomerUsers']);
@@ -38,6 +49,7 @@ class CustomerController extends AbstractController
     }
 
     #[Route('/api/customers/{customer_id}/users/{user_id}', name: 'app_customers_users_details', methods:['GET'])]
+    #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour accèder aux utilisateurs")]
     public function getCustomerUserDetail(
         int $customer_id, 
         int $user_id,
@@ -64,6 +76,7 @@ class CustomerController extends AbstractController
     }
 
     #[Route('/api/customers/{customer_id}/users', name: 'app_customers_users_add', methods:['POST'])]
+    #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour créer un utilisateur")]
     public function addCustomerUser(
         int $customer_id, 
         Request $request,
@@ -110,6 +123,7 @@ class CustomerController extends AbstractController
     }
 
     #[Route('/api/customers/{customer_id}/users/{user_id}', name: 'app_customers_users_delete', methods:['DELETE'])]
+    #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour supprimer un utilisateur")]
     public function deleteCustomerUser(
         int $customer_id, 
         int $user_id,
