@@ -28,6 +28,7 @@ class CustomerFixtures extends Fixture
             $customer->setName($name);
             $customer->setSlug($slug);
             $customer->setEmail($slug . '@pro.com');
+            $customer->setRoles(["ROLE_USER"]);
             $customer->setPassword( $this->passwordEncoder->hashPassword($customer, 'secret'));
 
             $manager->persist($customer);

@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -28,7 +29,7 @@ class CustomerController extends AbstractController
         $customer = $customerRepository->find($customer_id);
 
         if(!$customer){
-            return new JsonResponse("Erreur : Le client n'existe pas.", Response::HTTP_NOT_FOUND);
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Le client n'existe pas.");
         }
 
         $jsonCustomer = $serializer->serialize($customer, 'json', ['groups' => 'getCustomerUsers']);
@@ -36,7 +37,7 @@ class CustomerController extends AbstractController
         return new JsonResponse($jsonCustomer, Response::HTTP_OK, [], true);
     }
 
-    #[Route('/api/customers/{customer_id}/users/{user_id}', name: 'app_customers_users_detail', methods:['GET'])]
+    #[Route('/api/customers/{customer_id}/users/{user_id}', name: 'app_customers_users_details', methods:['GET'])]
     public function getCustomerUserDetail(
         int $customer_id, 
         int $user_id,
@@ -48,16 +49,16 @@ class CustomerController extends AbstractController
         $customer = $customerRepository->find($customer_id);
 
         if(!$customer){
-            return new JsonResponse("Erreur : Le client n'existe pas.", Response::HTTP_NOT_FOUND);
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Le client n'existe pas.");
         }
 
         $user = $userRepository->find($user_id);
 
         if(!$user){
-            return new JsonResponse("Erreur : L'utilisateur n'existe pas.", Response::HTTP_NOT_FOUND);
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "L'utilisateur n'existe pas.");
         }
 
-        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getCustomerUsersDetail']);
+        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getCustomerUsersDetails']);
 
         return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
     }
@@ -77,18 +78,25 @@ class CustomerController extends AbstractController
         $customer = $customerRepository->find($customer_id);
 
         if(!$customer){
-            return new JsonResponse("Erreur : Le client n'existe pas.", Response::HTTP_NOT_FOUND);
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Le client n'existe pas.");
         }
 
-        $user = $serializer->deserialize($request->getContent(), User::class, 'json');
+        $userData = $serializer->deserialize($request->getContent(), User::class, 'json');
 
-        $errors = $validator->validate($user);
+        $errors = $validator->validate($userData);
 
         if ($errors->count() > 0){
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
         }
 
+        $existingUser = $userRepository->findByEmail($userData->getEmail());
+
+        if($existingUser){
+            throw new HttpException(JsonResponse::HTTP_CONFLICT, "Un utilisateur avec cette adresse mail existe déjà.");
+        }
+
         $user = new User();
+        $user = $userData;
         $user->setCustomer($customer);
 
         $em->persist($user);
@@ -96,7 +104,7 @@ class CustomerController extends AbstractController
 
         $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getCustomerUsers']);
 
-        $location = $urlGenerator->generate('app_customers_users_detail', ['customer_id' => $customer->getId(),'user_id' => $user->getId()], UrlGenerator::ABSOLUTE_URL);
+        $location = $urlGenerator->generate('app_customers_users_details', ['customer_id' => $customer->getId(),'user_id' => $user->getId()], UrlGenerator::ABSOLUTE_URL);
 
         return new JsonResponse($jsonUser, Response::HTTP_CREATED, ['Location' => $location], true); 
     }
@@ -113,13 +121,13 @@ class CustomerController extends AbstractController
         $customer = $customerRepository->find($customer_id);
 
         if(!$customer){
-            return new JsonResponse("Erreur : Le client n'existe pas.", Response::HTTP_NOT_FOUND);
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Le client n'existe pas.");
         }
 
         $user = $userRepository->find($user_id);
 
         if(!$user){
-            return new JsonResponse("Erreur : L'utilisateur n'existe pas.", Response::HTTP_NOT_FOUND);
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "L'utilisateur n'existe pas.");
         }
 
         $em->remove($user);
