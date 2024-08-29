@@ -17,19 +17,19 @@ class Customer implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     private ?string $slug = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     private ?string $email = null;
 
     /**

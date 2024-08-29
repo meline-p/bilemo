@@ -14,32 +14,36 @@ class User
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     #[Assert\NotBlank(message: "Le pseudo de l'utilisateur est obligatoire")]
+    #[Assert\Length(min: 1, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères", maxMessage: "Le titre ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     #[Assert\NotBlank(message: "Le prénom de l'utilisateur est obligatoire")]
+    #[Assert\Length(min: 1, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères", maxMessage: "Le titre ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $first_name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     #[Assert\NotBlank(message: "Le nom de l'utilisateur est obligatoire")]
+    #[Assert\Length(min: 1, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères", maxMessage: "Le titre ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $last_name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetail"])]
+    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     #[Assert\NotBlank(message: "L'email de l'utilisateur est obligatoire")]
+    #[Assert\Length(min: 1, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères", maxMessage: "Le titre ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $email = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["getCustomerUsersDetail"])]
+    #[Groups(["getCustomerUsersDetails"])]
     private ?Customer $customer = null;
 
     public function getId(): ?int
