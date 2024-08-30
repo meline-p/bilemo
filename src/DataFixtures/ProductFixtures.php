@@ -18,7 +18,7 @@ class ProductFixtures extends Fixture
     {
         $faker = Faker\Factory::create('fr_FR');
 
-        for ($i = 1; $i <= 5; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
 
             $name = ucfirst($faker->word()) . ' ' .  $faker->randomNumber(3, true) . ' ' . $faker->randomElement(['X', 'Pro', 'Max', 'Plus']) ;
 

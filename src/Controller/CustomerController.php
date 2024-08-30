@@ -27,7 +27,8 @@ class CustomerController extends AbstractController
         int $customer_id, 
         CustomerRepository $customerRepository, 
         SerializerInterface $serializer,
-        Security $security
+        Security $security,
+        Request $request
         ): JsonResponse
     {
 
@@ -43,9 +44,15 @@ class CustomerController extends AbstractController
             throw new HttpException(JsonResponse::HTTP_FORBIDDEN, "Accès refusé : vous n'avez pas les droits pour accèder aux utilisateurs");
         }
 
-        $jsonCustomer = $serializer->serialize($customer, 'json', ['groups' => 'getCustomerUsers']);
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 3);
+
+        $customersUsersData = $customerRepository->findAllCustomerUsersWithPagination($page, $customer_id, $limit);
+
+        $jsonCustomer = $serializer->serialize($customersUsersData, 'json', ['groups' => 'getCustomerUsers']);
         
         return new JsonResponse($jsonCustomer, Response::HTTP_OK, [], true);
+        
     }
 
     #[Route('/api/customers/{customer_id}/users/{user_id}', name: 'app_customers_users_details', methods:['GET'])]
