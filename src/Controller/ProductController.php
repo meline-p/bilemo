@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ProductController extends AbstractController
 {
@@ -17,17 +19,24 @@ class ProductController extends AbstractController
     public function getProductList(
         ProductRepository $productRepository, 
         SerializerInterface $serializer,
-        Request $request
+        Request $request,
+        TagAwareCacheInterface $cachePool
     ): JsonResponse
     {
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 3);
 
-        $productsData = $productRepository->findAllProductsWithPagination($page, $limit);
+        $idCache = "getProductList-" . $page . "-" . $limit;
 
-        $jsonProductList = $serializer->serialize($productsData, 'json', ['groups' => 'getProducts']);
-
+        $jsonProductList = $cachePool->get($idCache, function(ItemInterface $item) use ($productRepository, $page, $limit, $serializer){
+            echo('pas encore en cache');
+            $item->tag('productsCache');
+            $productsList = $productRepository->findAllProductsWithPagination($page, $limit);
+            return $serializer->serialize($productsList, 'json', ['groups' => 'getProducts']);
+        });
+        
         return new JsonResponse($jsonProductList, Response::HTTP_OK, [], true);
+        
     }
 
     #[Route('/api/products/{id}', name: 'app_products_detail', methods:['GET'])]

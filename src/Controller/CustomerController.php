@@ -18,6 +18,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class CustomerController extends AbstractController
 {
@@ -28,7 +30,8 @@ class CustomerController extends AbstractController
         CustomerRepository $customerRepository, 
         SerializerInterface $serializer,
         Security $security,
-        Request $request
+        Request $request,
+        TagAwareCacheInterface $cachePool
         ): JsonResponse
     {
 
@@ -47,11 +50,16 @@ class CustomerController extends AbstractController
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 3);
 
-        $customersUsersData = $customerRepository->findAllCustomerUsersWithPagination($page, $customer_id, $limit);
+        $idCache = "getCustomerUsers-" . $page . "-" . $limit;
 
-        $jsonCustomer = $serializer->serialize($customersUsersData, 'json', ['groups' => 'getCustomerUsers']);
+        $jsonCustomerUsers = $cachePool->get($idCache, function(ItemInterface $item) use ($customerRepository, $page, $customer_id, $limit, $serializer){
+            echo('pas encore en cache');
+            $item->tag('customerUsersCache');
+            $customersUsersList = $customerRepository->findAllCustomerUsersWithPagination($page, $customer_id, $limit);
+            return $serializer->serialize($customersUsersList, 'json', ['groups' => 'getCustomerUsers']);
+        });
         
-        return new JsonResponse($jsonCustomer, Response::HTTP_OK, [], true);
+        return new JsonResponse($jsonCustomerUsers, Response::HTTP_OK, [], true);
         
     }
 
@@ -93,6 +101,7 @@ class CustomerController extends AbstractController
         EntityManagerInterface $em,
         UrlGeneratorInterface $urlGenerator,
         ValidatorInterface $validator,
+        TagAwareCacheInterface $cachePool
         ): JsonResponse
     {
         $customer = $customerRepository->find($customer_id);
@@ -116,11 +125,16 @@ class CustomerController extends AbstractController
         }
 
         $user = new User();
-        $user = $userData;
+        $user->setUsername(strtolower($userData->getUsername()));
+        $user->setFirstName(ucfirst($userData->getFirstName()));
+        $user->setLastName(ucfirst($userData->getLastName()));
+        $user->setEmail(strtolower($userData->getEmail()));
         $user->setCustomer($customer);
 
         $em->persist($user);
         $em->flush();
+
+        $cachePool->invalidateTags(["customerUsersCache"]);
 
         $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getCustomerUsers']);
 
@@ -137,6 +151,7 @@ class CustomerController extends AbstractController
         CustomerRepository $customerRepository, 
         UserRepository $userRepository,
         EntityManagerInterface $em,
+        TagAwareCacheInterface $cachePool
         ): JsonResponse
     {
         $customer = $customerRepository->find($customer_id);
@@ -151,6 +166,7 @@ class CustomerController extends AbstractController
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "L'utilisateur n'existe pas.");
         }
 
+        $cachePool->invalidateTags(["customerUsersCache"]);
         $em->remove($user);
         $em->flush();
         
