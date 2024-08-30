@@ -30,7 +30,7 @@ class ProductController extends AbstractController
 
         $jsonProductList = $cachePool->get($idCache, function(ItemInterface $item) use ($productRepository, $page, $limit, $serializer){
             echo('pas encore en cache');
-            $item->tag('productsCache');
+            $item->tag('productsListCache');
             $productsList = $productRepository->findAllProductsWithPagination($page, $limit);
             return $serializer->serialize($productsList, 'json', ['groups' => 'getProducts']);
         });
@@ -40,7 +40,12 @@ class ProductController extends AbstractController
     }
 
     #[Route('/api/products/{id}', name: 'app_products_detail', methods:['GET'])]
-    public function getDetailProduct(int $id, ProductRepository $productRepository, SerializerInterface $serializer): JsonResponse
+    public function getDetailProduct(
+        int $id, 
+        ProductRepository $productRepository, 
+        SerializerInterface $serializer,
+        TagAwareCacheInterface $cachePool
+    ): JsonResponse
     {
         $product = $productRepository->find($id);
 
@@ -48,8 +53,15 @@ class ProductController extends AbstractController
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Aucun produit disponible");
         }
 
-        $jsonProduct = $serializer->serialize($product, 'json', ['groups' => 'getProducts']);
+        $idCache = "getProductDetails-" . $id;
 
-        return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
+        $jsonProductDetails = $cachePool->get($idCache, function(ItemInterface $item) use ($productRepository, $id, $serializer){
+            echo('pas encore en cache');
+            $item->tag('productsDetailsCache');
+            $productsList = $productRepository->find($id);
+            return $serializer->serialize($productsList, 'json', ['groups' => 'getProducts']);
+        });
+
+        return new JsonResponse($jsonProductDetails, Response::HTTP_OK, [], true);
     }
 }
