@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Repository\CustomerRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use JMS\Serializer\SerializationContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,10 +17,10 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use JMS\Serializer\SerializerInterface;
 
 class CustomerController extends AbstractController
 {
@@ -56,7 +57,9 @@ class CustomerController extends AbstractController
             echo('pas encore en cache');
             $item->tag('customerUsersCache');
             $customersUsersList = $customerRepository->findAllCustomerUsersWithPagination($page, $customer_id, $limit);
-            return $serializer->serialize($customersUsersList, 'json', ['groups' => 'getCustomerUsers']);
+           
+            $context = SerializationContext::create()->setGroups(['getCustomerUsers']);
+            return $serializer->serialize($customersUsersList, 'json', $context);
         });
         
         return new JsonResponse($jsonCustomerUsers, Response::HTTP_OK, [], true);
@@ -92,7 +95,9 @@ class CustomerController extends AbstractController
             echo('pas encore en cache');
             $item->tag('customerUsersDetailsCache');
             $user = $userRepository->find($user_id);
-            return $serializer->serialize($user, 'json', ['groups' => 'getCustomerUsersDetails']);
+            
+            $context = SerializationContext::create()->setGroups(['getCustomerUsersDetails']);
+            return $serializer->serialize($user, 'json', $context);
         });
 
         return new JsonResponse($jsonCustomerUsersDetails, Response::HTTP_OK, [], true);
@@ -144,7 +149,8 @@ class CustomerController extends AbstractController
 
         $cachePool->invalidateTags(["customerUsersCache"]);
 
-        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getCustomerUsers']);
+        $context = SerializationContext::create()->setGroups(['getCustomerUsers']);
+        $jsonUser = $serializer->serialize($user, 'json', $context);
 
         $location = $urlGenerator->generate('app_customers_users_details', ['customer_id' => $customer->getId(),'user_id' => $user->getId()], UrlGenerator::ABSOLUTE_URL);
 

@@ -3,15 +3,16 @@
 namespace App\Controller;
 
 use App\Repository\ProductRepository;
+use JMS\Serializer\SerializationContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use JMS\Serializer\SerializerInterface;
 
 class ProductController extends AbstractController
 {
@@ -32,7 +33,9 @@ class ProductController extends AbstractController
             echo('pas encore en cache');
             $item->tag('productsListCache');
             $productsList = $productRepository->findAllProductsWithPagination($page, $limit);
-            return $serializer->serialize($productsList, 'json', ['groups' => 'getProducts']);
+
+            $context = SerializationContext::create()->setGroups(['getProducts']);
+            return $serializer->serialize($productsList, 'json', $context);
         });
         
         return new JsonResponse($jsonProductList, Response::HTTP_OK, [], true);
@@ -59,7 +62,9 @@ class ProductController extends AbstractController
             echo('pas encore en cache');
             $item->tag('productsDetailsCache');
             $productsList = $productRepository->find($id);
-            return $serializer->serialize($productsList, 'json', ['groups' => 'getProducts']);
+            
+            $context = SerializationContext::create()->setGroups(['getProducts']);
+            return $serializer->serialize($productsList, 'json', $context);
         });
 
         return new JsonResponse($jsonProductDetails, Response::HTTP_OK, [], true);
