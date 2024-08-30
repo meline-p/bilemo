@@ -70,7 +70,8 @@ class CustomerController extends AbstractController
         int $user_id,
         CustomerRepository $customerRepository, 
         UserRepository $userRepository,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        TagAwareCacheInterface $cachePool
         ): JsonResponse
     {
         $customer = $customerRepository->find($customer_id);
@@ -85,9 +86,16 @@ class CustomerController extends AbstractController
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "L'utilisateur n'existe pas.");
         }
 
-        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getCustomerUsersDetails']);
+        $idCache = "getCustomerUsersDetails-" . $user_id . "-" . $customer_id;
 
-        return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
+        $jsonCustomerUsersDetails = $cachePool->get($idCache, function(ItemInterface $item) use ($userRepository, $user_id, $serializer){
+            echo('pas encore en cache');
+            $item->tag('customerUsersDetailsCache');
+            $user = $userRepository->find($user_id);
+            return $serializer->serialize($user, 'json', ['groups' => 'getCustomerUsersDetails']);
+        });
+
+        return new JsonResponse($jsonCustomerUsersDetails, Response::HTTP_OK, [], true);
     }
 
     #[Route('/api/customers/{customer_id}/users', name: 'app_customers_users_add', methods:['POST'])]
