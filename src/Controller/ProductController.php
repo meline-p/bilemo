@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -13,15 +14,18 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class ProductController extends AbstractController
 {
     #[Route('/api/products', name: 'app_products_list', methods:['GET'])]
-    public function getProductList(ProductRepository $productRepository, SerializerInterface $serializer): JsonResponse
+    public function getProductList(
+        ProductRepository $productRepository, 
+        SerializerInterface $serializer,
+        Request $request
+    ): JsonResponse
     {
-        $productList = $productRepository->findAll();
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 3);
 
-        if(!$productList){
-            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Aucun produit disponible");
-        }
+        $productsData = $productRepository->findAllProductsWithPagination($page, $limit);
 
-        $jsonProductList = $serializer->serialize($productList, 'json', ['groups' => 'getProducts']);
+        $jsonProductList = $serializer->serialize($productsData, 'json', ['groups' => 'getProducts']);
 
         return new JsonResponse($jsonProductList, Response::HTTP_OK, [], true);
     }
