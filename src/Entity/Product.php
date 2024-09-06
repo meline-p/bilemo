@@ -6,9 +6,8 @@ use App\Repository\ProductRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\Groups;
-use JMS\Serializer\Annotation as Serializer;
 use Hateoas\Configuration\Annotation as Hateoas;
-
+use JMS\Serializer\Annotation\Since;
 
 /**
  * @Hateoas\Relation(
@@ -33,8 +32,9 @@ class Product
     #[Groups(["getProducts"])]
     private ?string $name = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(["getProducts"])]
+    #[Since("2.0")]
     private ?string $description = null;
 
     #[ORM\Column(length: 255)]
