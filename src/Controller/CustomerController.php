@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\CustomerRepository;
 use App\Repository\UserRepository;
+use App\Service\VersioningService;
 use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\SerializationContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,6 +25,13 @@ use JMS\Serializer\SerializerInterface;
 
 class CustomerController extends AbstractController
 {
+    private VersioningService $versioningService;
+
+    public function __construct(VersioningService $versioningService)
+    {
+        $this->versioningService = $versioningService;
+    }
+
     #[Route('/api/users', name: 'app_customers_users_list', methods:['GET'])]
     #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour accèder aux utilisateurs")]
     public function getCustomerUsers( 
@@ -50,7 +58,9 @@ class CustomerController extends AbstractController
             $item->tag('customerUsersCache');
             $customersUsersList = $customerRepository->findAllCustomerUsersWithPagination($page, $customerId, $limit);
            
+            $version = $this->versioningService->getVersion();
             $context = SerializationContext::create()->setGroups(['getCustomerUsers']);
+            $context->setVersion($version);
             return $serializer->serialize($customersUsersList, 'json', $context);
         });
         
@@ -84,7 +94,9 @@ class CustomerController extends AbstractController
             $item->tag('customerUsersDetailsCache');
             $user = $userRepository->find($id);
             
+            $version = $this->versioningService->getVersion();
             $context = SerializationContext::create()->setGroups(['getCustomerUsersDetails']);
+            $context->setVersion($version);
             return $serializer->serialize($user, 'json', $context);
         });
 

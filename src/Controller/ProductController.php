@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Repository\ProductRepository;
+use App\Service\VersioningService;
 use JMS\Serializer\SerializationContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +18,14 @@ use JMS\Serializer\SerializerInterface;
 
 class ProductController extends AbstractController
 {
-    #[Route('/api/products', name: 'app_products_list', methods:['GET'])]
+    private VersioningService $versioningService;
+
+    public function __construct(VersioningService $versioningService)
+    {
+        $this->versioningService = $versioningService;
+    }
+
+    #[Route('/api/products', name: 'app_products_list', methods: ['GET'])]
     public function getProductList(
         ProductRepository $productRepository, 
         SerializerInterface $serializer,
@@ -25,25 +33,26 @@ class ProductController extends AbstractController
         TagAwareCacheInterface $cachePool
     ): JsonResponse
     {
-        $page = $request->get('page', 1);
-        $limit = $request->get('limit', 3);
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 3);
 
         $idCache = "getProductList-" . $page . "-" . $limit;
 
-        $jsonProductList = $cachePool->get($idCache, function(ItemInterface $item) use ($productRepository, $page, $limit, $serializer){
+        $jsonProductList = $cachePool->get($idCache, function(ItemInterface $item) use ($productRepository, $page, $limit, $serializer) {
             echo('pas encore en cache');
             $item->tag('productsListCache');
             $productsList = $productRepository->findAllProductsWithPagination($page, $limit);
 
+            $version = $this->versioningService->getVersion();
             $context = SerializationContext::create()->setGroups(['getProducts']);
+            $context->setVersion($version);
             return $serializer->serialize($productsList, 'json', $context);
         });
         
         return new JsonResponse($jsonProductList, Response::HTTP_OK, [], true);
-        
     }
 
-    #[Route('/api/products/{id}', name: 'app_products_detail', methods:['GET'])]
+    #[Route('/api/products/{id}', name: 'app_products_detail', methods: ['GET'])]
     public function getDetailProduct(
         int $id, 
         ProductRepository $productRepository, 
@@ -51,20 +60,21 @@ class ProductController extends AbstractController
         TagAwareCacheInterface $cachePool
     ): JsonResponse
     {
-
         $product = $productRepository->find($id);
         
-        if(!$product){
+        if (!$product) {
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Aucun produit disponible");
         }
 
         $idCache = "getProductDetails-" . $id;
 
-        $jsonProductDetails = $cachePool->get($idCache, function(ItemInterface $item) use ($product, $serializer){
+        $jsonProductDetails = $cachePool->get($idCache, function(ItemInterface $item) use ($product, $serializer) {
             echo('pas encore en cache');
             $item->tag('productsDetailsCache');
 
+            $version = $this->versioningService->getVersion();
             $context = SerializationContext::create()->setGroups(['getProducts']);
+            $context->setVersion($version);
             return $serializer->serialize($product, 'json', $context);
         });
     
