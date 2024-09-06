@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Product;
 use App\Repository\ProductRepository;
 use JMS\Serializer\SerializationContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -50,23 +51,23 @@ class ProductController extends AbstractController
         TagAwareCacheInterface $cachePool
     ): JsonResponse
     {
-        $product = $productRepository->find($id);
 
+        $product = $productRepository->find($id);
+        
         if(!$product){
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Aucun produit disponible");
         }
 
         $idCache = "getProductDetails-" . $id;
 
-        $jsonProductDetails = $cachePool->get($idCache, function(ItemInterface $item) use ($productRepository, $id, $serializer){
+        $jsonProductDetails = $cachePool->get($idCache, function(ItemInterface $item) use ($product, $serializer){
             echo('pas encore en cache');
             $item->tag('productsDetailsCache');
-            $productsList = $productRepository->find($id);
-            
-            $context = SerializationContext::create()->setGroups(['getProducts']);
-            return $serializer->serialize($productsList, 'json', $context);
-        });
 
+            $context = SerializationContext::create()->setGroups(['getProducts']);
+            return $serializer->serialize($product, 'json', $context);
+        });
+    
         return new JsonResponse($jsonProductDetails, Response::HTTP_OK, [], true);
     }
 }

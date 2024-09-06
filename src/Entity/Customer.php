@@ -11,41 +11,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use JMS\Serializer\Annotation\Groups;
 use Hateoas\Configuration\Annotation as Hateoas;
 
-/**
- * @Hateoas\Relation(
- *      "self",
- *      href = @Hateoas\Route(
- *          "app_customers_users_details",
- *          parameters = { 
- *              "customer_id" = "expr(object.getId())",
- *              "user_id" = "expr(object.getUsers().getId())"
- *          },
- *      ),
- *      exclusion = @Hateoas\Exclusion(groups="getCustomerUsersDetails", excludeIf = "expr(not is_granted('ROLE_CUSTOMER'))")
- * )
- *  * @Hateoas\Relation(
- *      "update",
- *      href = @Hateoas\Route(
- *          "app_customers_users_details",
- *          parameters = { 
- *              "customer_id" = "expr(object.getId())",
- *              "user_id" = "expr(object.getUsers().getId())"
- *          },
- *      ),
- *      exclusion = @Hateoas\Exclusion(groups="getCustomerUsersDetails", excludeIf = "expr(not is_granted('ROLE_CUSTOMER'))")
- * )
- *  * @Hateoas\Relation(
- *      "delete",
- *      href = @Hateoas\Route(
- *          "app_customers_users_details",
- *          parameters = { 
- *              "customer_id" = "expr(object.getId())",
- *              "user_id" = "expr(object.getUsers().getId())"
- *          },
- *      ),
- *      exclusion = @Hateoas\Exclusion(groups="getCustomerUsersDetails", excludeIf = "expr(not is_granted('ROLE_CUSTOMER'))")
- * )
- */
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class Customer implements UserInterface, PasswordAuthenticatedUserInterface

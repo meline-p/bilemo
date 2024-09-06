@@ -9,16 +9,16 @@ use JMS\Serializer\Annotation\Groups;
 use JMS\Serializer\Annotation as Serializer;
 use Hateoas\Configuration\Annotation as Hateoas;
 
+
 /**
  * @Hateoas\Relation(
  *      "self",
  *      href = @Hateoas\Route(
- *          "app_products_detail",
- *          parameters = { "id" = "expr(object.getId())" },
+ *          "app_products_detail", 
+ *          parameters = { "id" = "expr(object.getId())" }
  *      ),
- *      exclusion = @Hateoas\Exclusion(groups="getProducts")
+ *      exclusion = @Hateoas\Exclusion(groups = {"getProducts"})
  * )
- * 
  */
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
