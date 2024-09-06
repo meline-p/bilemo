@@ -6,3 +6,7 @@ controllers:
 
 api_login_check:
     path: /api/login_check
+
+app_products_detail:
+    path: /api/products/{id}
+    controller: App\Controller\ProductController::getDetailProduct
