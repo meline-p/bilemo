@@ -32,6 +32,38 @@ class CustomerController extends AbstractController
         $this->versioningService = $versioningService;
     }
 
+     /**
+     * Users list
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Return users list",
+     *     @Model(type=User::class, groups={"getCustomerUsers"})
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of items we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Users")
+     * @Security(name="Bearer")
+     *
+     * @param CustomerRepository $customerRepository
+     * @param SerializerInterface $serializer
+     * @param Security $security
+     * @param Request $request
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse 
+     * 
+     */
     #[Route('/api/users', name: 'app_customers_users_list', methods:['GET'])]
     #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour accèder aux utilisateurs")]
     public function getCustomerUsers( 
@@ -68,6 +100,37 @@ class CustomerController extends AbstractController
         
     }
 
+    /**
+     * Users details
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Return user details",
+     *     @Model(type=User::class, groups={"getCustomerUsersDetails"})
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of items we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Users")
+     * @Security(name="Bearer")
+     *
+     * @param UserRepository $userRepository
+     * @param SerializerInterface $serializer
+     * @param Security $security
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse 
+     * 
+     */
     #[Route('/api/users/{id}', name: 'app_customers_users_details', methods:['GET'])]
     #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour accèder aux utilisateurs")]
     public function getCustomerUserDetail(
@@ -103,6 +166,41 @@ class CustomerController extends AbstractController
         return new JsonResponse($jsonCustomerUsersDetails, Response::HTTP_OK, [], true);
     }
 
+     /**
+     * Add user
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Add user",
+     *     @Model(type=User::class)
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of items we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Users")
+     * @Security(name="Bearer")
+     *
+     * @param Request $request
+     * @param UserRepository $userRepository
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $em
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param ValidatorInterface $validator
+     * @param Security $security
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse 
+     * 
+     */
     #[Route('/api/users', name: 'app_customers_users_add', methods:['POST'])]
     #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour créer un utilisateur")]
     public function addCustomerUser( 
@@ -153,6 +251,37 @@ class CustomerController extends AbstractController
         return new JsonResponse($jsonUser, Response::HTTP_CREATED, ['Location' => $location], true); 
     }
 
+    /**
+     * Delete user
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Delete user",
+     *     @Model(type=User::class)
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of items we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Users")
+     * @Security(name="Bearer")
+     *
+     * @param UserRepository $userRepository
+     * @param EntityManagerInterface $em
+     * @param Security $security
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse 
+     * 
+     */
     #[Route('/api/users/{id}', name: 'app_customers_users_delete', methods:['DELETE'])]
     #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour supprimer un utilisateur")]
     public function deleteCustomerUser(

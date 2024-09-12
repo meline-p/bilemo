@@ -15,6 +15,9 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use JMS\Serializer\SerializerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class ProductController extends AbstractController
 {
@@ -25,7 +28,38 @@ class ProductController extends AbstractController
         $this->versioningService = $versioningService;
     }
 
-    #[Route('/api/products', name: 'app_products_list', methods: ['GET'])]
+    /**
+     * Products list
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Return products list",
+     *     @Model(type=Product::class, groups={"getProducts"})
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of items we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Products")
+     * @Security(name="Bearer")
+     *
+     * @param ProductRepository $productRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse 
+     * 
+     */
+    #[Route('/api/products', name: 'app_products_list', methods: ['GET'])]    
     public function getProductList(
         ProductRepository $productRepository, 
         SerializerInterface $serializer,
@@ -52,6 +86,37 @@ class ProductController extends AbstractController
         return new JsonResponse($jsonProductList, Response::HTTP_OK, [], true);
     }
 
+    /**
+     * Product Details
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Return product details",
+     *     @Model(type=Product::class, groups={"getProducts"})
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of items we want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Products")
+     * @Security(name="Bearer")
+     *
+     * @param in $id
+     * @param ProductRepository $productRepository
+     * @param SerializerInterface $serializer
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse 
+     * 
+     */
     #[Route('/api/products/{id}', name: 'app_products_detail', methods: ['GET'])]
     public function getDetailProduct(
         int $id, 
