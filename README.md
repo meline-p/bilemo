@@ -45,13 +45,13 @@ BileMo API provides access to a catalog of high-end mobile phones.
     private key: 
         ```bash
         openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
-
         ```
+
     public key: 
         ```bash
         openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
-
         ```
+
     Change `JWT_PASSPHRASE` to your passphrase
 
 Ensure these parameters are configured in the `.env.local` file.
@@ -84,11 +84,13 @@ Access the application via your browser at http://localhost:8000.
 ## Cache
 
 This API uses `TagAwareCacheInterface` for cache management. To clear or invalidate the cache by tag, you can use the following command:
+
     ```bash
     php bin/console cache:clear
     ```
 
 Or to invalidate a specific tag:
+
     ```bash
     $cachePool->invalidateTags(['your_tag']);
     ```
@@ -111,10 +113,7 @@ Add the token to the Authorization header to access protected endpoints:
 
 ## Documentation
 
-The API is documented using `NelmioApiDocBundle`. After starting the server, the documentation is available at:
-    ```bash
-    http://localhost:8000/api/doc
-    ```
+The API is documented using `NelmioApiDocBundle`. After starting the server, the documentation is available at: http://localhost:8000/api/doc
 
 
 ## Endpoints
