@@ -73,25 +73,16 @@ Ensure these parameters are configured in the `.env.local` file.
 ## Usage
 
 ### Launch the website
-Start the local server:
-    ```bash
-    symfony serve
-    ```
+Start the local server: `symfony serve`
 
 Access the application via your browser at http://localhost:8000.
 
 
 ## Cache
 
-This API uses `TagAwareCacheInterface` for cache management. To clear or invalidate the cache by tag, you can use the following command:
-    ```bash
-    php bin/console cache:clear
-    ```
+This API uses `TagAwareCacheInterface` for cache management. To clear or invalidate the cache by tag, you can use the following command: `php bin/console cache:clear`
 
-Or to invalidate a specific tag:
-    ```bash
-    $cachePool->invalidateTags(['your_tag']);
-    ```
+Or to invalidate a specific tag: `$cachePool->invalidateTags(['your_tag']);`
 
 
 ## Security
