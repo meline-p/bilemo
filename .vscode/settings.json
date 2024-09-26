@@ -1,0 +1,17 @@
+{
+	"[php]": {
+		"editor.defaultFormatter": "junstyle.php-cs-fixer"
+	},
+	"files.eol": "\n",
+	"git.autofetch": true,
+	"html.format.wrapLineLength": 200,
+	"php-cs-fixer.documentFormattingProvider": true,
+	"php-cs-fixer.executablePath": "C:\\Users\\Méline\\AppData\\Roaming\\Composer\\vendor\\bin\\php-cs-fixer.bat",
+	"php-cs-fixer.formatHtml": true,
+	"php-cs-fixer.onsave": true,
+	"php-cs-fixer.config": ".vscode/.php-cs-fixer.php",
+	"php.suggest.basic": false,
+	"emmet.includeLanguages": {
+		"twig": "html"
+	  }
+}

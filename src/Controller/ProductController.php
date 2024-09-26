@@ -15,6 +15,9 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use JMS\Serializer\SerializerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Attributes as OA;
+use Psr\Log\LoggerInterface;
 
 class ProductController extends AbstractController
 {
@@ -25,21 +28,58 @@ class ProductController extends AbstractController
         $this->versioningService = $versioningService;
     }
 
+    /**
+     * Get products list
+     *
+     * @param ProductRepository $productRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @param TagAwareCacheInterface $cachePool
+     * @param LoggerInterface $logger
+     * @return JsonResponse
+     *
+     */
+    #[OA\Response(
+        response: 200,
+        description: "Return products list",
+        content: new OA\JsonContent(
+            type: "array",
+            items:new OA\Items(
+                ref: new Model(
+                    type:Product::class,
+                    groups:["getProducts"]
+                )
+            )
+        )
+    )]
+    #[OA\Tag(name:"Products")]
+    #[OA\Parameter(
+        name:"page",
+        in:"query",
+        description:"The page we want to retrieve",
+        schema: new OA\Schema(type:'int')
+    )]
+    #[OA\Parameter(
+        name:"limit",
+        in:"query",
+        description:"The number of items we want to retrieve",
+        schema: new OA\Schema(type:'int')
+    )]
     #[Route('/api/products', name: 'app_products_list', methods: ['GET'])]
     public function getProductList(
-        ProductRepository $productRepository, 
+        ProductRepository $productRepository,
         SerializerInterface $serializer,
         Request $request,
-        TagAwareCacheInterface $cachePool
-    ): JsonResponse
-    {
+        TagAwareCacheInterface $cachePool,
+        LoggerInterface $logger
+    ): JsonResponse {
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 3);
 
         $idCache = "getProductList-" . $page . "-" . $limit;
 
-        $jsonProductList = $cachePool->get($idCache, function(ItemInterface $item) use ($productRepository, $page, $limit, $serializer) {
-            echo('pas encore en cache');
+        $jsonProductList = $cachePool->get($idCache, function (ItemInterface $item) use ($productRepository, $page, $limit, $serializer, $logger) {
+            $logger->notice('cache miss');
             $item->tag('productsListCache');
             $productsList = $productRepository->findAllProductsWithPagination($page, $limit);
 
@@ -48,28 +88,57 @@ class ProductController extends AbstractController
             $context->setVersion($version);
             return $serializer->serialize($productsList, 'json', $context);
         });
-        
+
         return new JsonResponse($jsonProductList, Response::HTTP_OK, [], true);
     }
 
+    /**
+     * Get product details
+     *
+     * @param in $id
+     * @param ProductRepository $productRepository
+     * @param SerializerInterface $serializer
+     * @param TagAwareCacheInterface $cachePool
+     * @param LoggerInterface $logger
+     * @return JsonResponse
+     *
+     */
+    #[OA\Response(
+        response: 200,
+        description: "Return product details",
+        content: new OA\JsonContent(
+            type: "array",
+            items:new OA\Items(
+                ref: new Model(
+                    type:Product::class,
+                    groups:["getProducts"]
+                )
+            )
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: "Product not found"
+    )]
+    #[OA\Tag(name:"Products")]
     #[Route('/api/products/{id}', name: 'app_products_detail', methods: ['GET'])]
     public function getDetailProduct(
-        int $id, 
-        ProductRepository $productRepository, 
+        int $id,
+        ProductRepository $productRepository,
         SerializerInterface $serializer,
-        TagAwareCacheInterface $cachePool
-    ): JsonResponse
-    {
+        TagAwareCacheInterface $cachePool,
+        LoggerInterface $logger
+    ): JsonResponse {
         $product = $productRepository->find($id);
-        
+
         if (!$product) {
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Aucun produit disponible");
         }
 
         $idCache = "getProductDetails-" . $id;
 
-        $jsonProductDetails = $cachePool->get($idCache, function(ItemInterface $item) use ($product, $serializer) {
-            echo('pas encore en cache');
+        $jsonProductDetails = $cachePool->get($idCache, function (ItemInterface $item) use ($product, $serializer, $logger) {
+            $logger->notice('cache miss');
             $item->tag('productsDetailsCache');
 
             $version = $this->versioningService->getVersion();
@@ -77,7 +146,7 @@ class ProductController extends AbstractController
             $context->setVersion($version);
             return $serializer->serialize($product, 'json', $context);
         });
-    
+
         return new JsonResponse($jsonProductDetails, Response::HTTP_OK, [], true);
     }
 }

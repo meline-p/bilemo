@@ -8,8 +8,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use JMS\Serializer\Annotation\Groups;
-use Hateoas\Configuration\Annotation as Hateoas;
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -18,19 +16,15 @@ class Customer implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     private ?string $slug = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
     private ?string $email = null;
 
     /**
@@ -49,7 +43,6 @@ class Customer implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, User>
      */
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'customer', orphanRemoval: true)]
-    #[Groups(["getCustomerUsers"])]
     private Collection $users;
 
     public function __construct()
