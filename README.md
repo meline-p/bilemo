@@ -73,16 +73,23 @@ Ensure these parameters are configured in the `.env.local` file.
 ## Usage
 
 ### Launch the website
-Start the local server: `symfony serve`
+Start the local server: 
+    ```symfony serve```
 
 Access the application via your browser at http://localhost:8000.
 
 
 ## Cache
 
-This API uses `TagAwareCacheInterface` for cache management. To clear or invalidate the cache by tag, you can use the following command: `php bin/console cache:clear`
+This API uses `TagAwareCacheInterface` for cache management. To clear or invalidate the cache by tag, you can use the following command: 
+    ```
+    php bin/console cache:clear
+    ```
 
-Or to invalidate a specific tag: `$cachePool->invalidateTags(['your_tag']);`
+Or to invalidate a specific tag: 
+    ```
+    $cachePool->invalidateTags(['your_tag']);
+    ```
 
 
 ## Security
@@ -90,12 +97,12 @@ Or to invalidate a specific tag: `$cachePool->invalidateTags(['your_tag']);`
 JWT tokens are employed to protect the API routes.
 
 To generate a JWT token after authentication, send a POST request to:
-    ```bash
+    ```
     POST /api/login_check
     ```
 
 Add the token to the Authorization header to access protected endpoints:
-    ```bash
+    ```
     Authorization: Bearer your_jwt_token
     ```
 
