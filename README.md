@@ -78,8 +78,6 @@ Ensure these parameters are configured in the `.env.local` file.
     symfony serve
     ```
 
-- Access the application via your browser at http://localhost:8000.
-
 
 ## Cache
 
@@ -115,9 +113,11 @@ The API is documented using `NelmioApiDocBundle`. After starting the server, the
 
 
 ## Endpoints
+### Products
 - GET `/api/products`
 - GET `/api/products/{id}`
 
+### Users
 - GET `/api/users`
 - POST `/api/users`
 - GET `/api/users/{id}`
