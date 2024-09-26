@@ -4,7 +4,7 @@
 
 BileMo API provides access to a catalog of high-end mobile phones.
 
-## Sommaire
+## Table of Contents
 
 - [Description](#description)
 - [Installation](#installation)
@@ -109,7 +109,8 @@ JWT tokens are employed to protect the API routes.
 
 ## Documentation
 
-The API is documented using `NelmioApiDocBundle`. After starting the server, the documentation is available at: http://localhost:8000/api/doc
+The API is documented using `NelmioApiDocBundle`. 
+After starting the server, the documentation is available at: http://localhost:8000/api/doc
 
 
 ## Endpoints
