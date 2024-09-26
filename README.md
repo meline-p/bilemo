@@ -73,21 +73,23 @@ Ensure these parameters are configured in the `.env.local` file.
 ## Usage
 
 ### Launch the website
-Start the local server: 
-    ```symfony serve```
+- Start the local server: 
+    ```bash
+    symfony serve
+    ```
 
-Access the application via your browser at http://localhost:8000.
+- Access the application via your browser at http://localhost:8000.
 
 
 ## Cache
 
-This API uses `TagAwareCacheInterface` for cache management. To clear or invalidate the cache by tag, you can use the following command: 
-    ```
+- This API uses `TagAwareCacheInterface` for cache management. To clear or invalidate the cache by tag, you can use the following command: 
+    ```bash
     php bin/console cache:clear
     ```
 
-Or to invalidate a specific tag: 
-    ```
+- Or to invalidate a specific tag: 
+    ```bash
     $cachePool->invalidateTags(['your_tag']);
     ```
 
@@ -96,13 +98,13 @@ Or to invalidate a specific tag:
 
 JWT tokens are employed to protect the API routes.
 
-To generate a JWT token after authentication, send a POST request to:
-    ```
+- To generate a JWT token after authentication, send a POST request to:
+    ```bash
     POST /api/login_check
     ```
 
-Add the token to the Authorization header to access protected endpoints:
-    ```
+- Add the token to the Authorization header to access protected endpoints:
+    ```bash
     Authorization: Bearer your_jwt_token
     ```
 
@@ -114,139 +116,10 @@ The API is documented using `NelmioApiDocBundle`. After starting the server, the
 
 ## Endpoints
 - GET `/api/products`
-    ```bash
-        [
-            {
-                "id": 0,
-                "name": "string",
-                "description": "string",
-                "slug": "string",
-                "price": 0,
-                "brand": {
-                "id": 0,
-                "name": "string",
-                "slug": "string"
-                },
-                "_links": {
-                "self": {
-                    "href": "string"
-                }
-                }
-            }
-        ]
-    ```
-
 - GET `/api/products/{id}`
-    ```bash
-        [
-            {
-                "id": 0,
-                "name": "string",
-                "description": "string",
-                "slug": "string",
-                "price": 0,
-                "brand": {
-                "id": 0,
-                "name": "string",
-                "slug": "string"
-                },
-                "_links": {
-                "self": {
-                    "href": "string"
-                }
-                }
-            }
-        ]
-    ```
 
 - GET `/api/users`
-     ```bash
-        [
-            {
-                "id": 0,
-                "username": "string",
-                "first_name": "string",
-                "last_name": "string",
-                "email": "string",
-                "_links": {
-                "self": {
-                    "href": "string"
-                },
-                "delete": {
-                    "href": "string"
-                },
-                "create": {
-                    "href": "string"
-                }
-                }
-            }
-        ]
-    ```
-
 - POST `/api/users`
-    ```bash
-        {
-            "id": 0,
-            "username": "string",
-            "first_name": "string",
-            "last_name": "string",
-            "email": "string",
-            "_links": {
-            "self": {
-                "href": "string"
-            },
-            "delete": {
-                "href": "string"
-            },
-            "create": {
-                "href": "string"
-            }
-        }
-    ```
-
 - GET `/api/users/{id}`
-    ```bash
-        [
-            {
-                "id": 0,
-                "username": "string",
-                "first_name": "string",
-                "last_name": "string",
-                "email": "string",
-                "_links": {
-                "self": {
-                    "href": "string"
-                },
-                "delete": {
-                    "href": "string"
-                },
-                "create": {
-                    "href": "string"
-                }
-                }
-            }
-        ]
-    ```
-
 - PUT `/api/users/{id}`
-     ```bash
-        {
-            "id": 0,
-            "username": "string",
-            "first_name": "string",
-            "last_name": "string",
-            "email": "string",
-            "_links": {
-            "self": {
-                "href": "string"
-            },
-            "delete": {
-                "href": "string"
-            },
-            "create": {
-                "href": "string"
-            }
-        }
-    ```
-
 - DELETE `/api/users/{id}`
