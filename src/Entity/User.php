@@ -12,23 +12,23 @@ use Hateoas\Configuration\Annotation as Hateoas;
  * @Hateoas\Relation(
  *      "self",
  *      href = @Hateoas\Route(
- *          "app_customers_users_details",
+ *          "app_users_details",
  *          parameters = { "id" = "expr(object.getId())" }
  *      ),
- *      exclusion = @Hateoas\Exclusion(groups = {"getCustomerUsers","getCustomerUsersDetails"})
+ *      exclusion = @Hateoas\Exclusion(groups = {"getUsers"})
  * )
  * @Hateoas\Relation(
  *      "delete",
  *      href = @Hateoas\Route(
- *          "app_customers_users_delete",
+ *          "app_users_delete",
  *          parameters = { "id" = "expr(object.getId())" }
  *      ),
- *      exclusion = @Hateoas\Exclusion(groups = {"getCustomerUsers","getCustomerUsersDetails"})
+ *      exclusion = @Hateoas\Exclusion(groups = {"getUsers"})
  * )
  * @Hateoas\Relation(
  *      "create",
- *      href = @Hateoas\Route("app_customers_users_add"),
- *      exclusion = @Hateoas\Exclusion(groups = {"getCustomerUsers","getCustomerUsersDetails"})
+ *      href = @Hateoas\Route("app_users_add"),
+ *      exclusion = @Hateoas\Exclusion(groups = {"getUsers"})
  * )
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -38,29 +38,29 @@ class User
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
+    #[Groups(["getUsers"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
+    #[Groups(["getUsers"])]
     #[Assert\NotBlank(message: "Le pseudo de l'utilisateur est obligatoire")]
     #[Assert\Length(min: 1, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères", maxMessage: "Le titre ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
+    #[Groups(["getUsers"])]
     #[Assert\NotBlank(message: "Le prénom de l'utilisateur est obligatoire")]
     #[Assert\Length(min: 1, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères", maxMessage: "Le titre ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $first_name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
+    #[Groups(["getUsers"])]
     #[Assert\NotBlank(message: "Le nom de l'utilisateur est obligatoire")]
     #[Assert\Length(min: 1, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères", maxMessage: "Le titre ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $last_name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCustomerUsers", "getCustomerUsersDetails"])]
+    #[Groups(["getUsers"])]
     #[Assert\NotBlank(message: "L'email de l'utilisateur est obligatoire")]
     #[Assert\Length(min: 1, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères", maxMessage: "Le titre ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $email = null;

@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Customer;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -32,42 +31,6 @@ class CustomerRepository extends ServiceEntityRepository implements PasswordUpgr
         $user->setPassword($newHashedPassword);
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
-    }
-
-    public function findAllCustomerUsersWithPagination(int $page, int $customer_id, int $limit = 3) : array
-    {
-        $limit = abs($limit);
-
-        $result = [];
-
-        $queryBuilder = $this->getEntityManager()->createQueryBuilder()
-            ->select('u', 'c')
-            ->from('App\Entity\User', 'u')
-            ->innerJoin('u.customer', 'c')
-            ->where('c.id = :customer_id')
-            ->setParameter('customer_id', $customer_id)
-            ->orderBy('u.id', 'DESC');
-
-        $queryBuilder->setMaxResults($limit)
-            ->setFirstResult(($page * $limit) - $limit);
-
-        $paginator = new Paginator($queryBuilder);
-        $data = $paginator->getQuery()->getResult();
-
-        if(empty($data)){
-            return $result;
-        }
-
-        $pages = ceil($paginator->count() / $limit);
-
-        $result = [
-            'data' => $data,
-            'pages' => $pages,
-            'page' => $page,
-            'limit' => $limit
-        ];
-        
-        return $result;
     }
 
     //    /**

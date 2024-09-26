@@ -25,8 +25,9 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Attributes as OA;
+use Psr\Log\LoggerInterface;
 
-class CustomerController extends AbstractController
+class UserController extends AbstractController
 {
     private VersioningService $versioningService;
 
@@ -36,16 +37,17 @@ class CustomerController extends AbstractController
     }
 
     /**
-    * Users list
-    *
-    * @param CustomerRepository $customerRepository
-    * @param SerializerInterface $serializer
-    * @param Security $security
-    * @param Request $request
-    * @param TagAwareCacheInterface $cachePool
-    * @return JsonResponse
-    *
-    */
+     * Get users list
+     *
+     * @param UserRepository $userRepository
+     * @param SerializerInterface $serializer
+     * @param Security $security
+     * @param Request $request
+     * @param TagAwareCacheInterface $cachePool
+     * @param LoggerInterface $logger
+     * @return JsonResponse
+     *
+     */
     #[OA\Response(
         response: 200,
         description: "Return users list",
@@ -54,7 +56,7 @@ class CustomerController extends AbstractController
             items:new OA\Items(
                 ref: new Model(
                     type:User::class,
-                    groups:["getCustomerUsers"]
+                    groups:["getUsers"]
                 )
             )
         )
@@ -72,14 +74,15 @@ class CustomerController extends AbstractController
         description:"The number of items we want to retrieve",
         schema: new OA\Schema(type:'int')
     )]
-    #[Route('/api/users', name: 'app_customers_users_list', methods:['GET'])]
-    #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour accèder aux utilisateurs")]
-    public function getCustomerUsers(
-        CustomerRepository $customerRepository,
+    #[Route('/api/users', name: 'app_users_list', methods:['GET'])]
+    #[IsGranted('ROLE_CUSTOMER', message: "Accès refusé")]
+    public function getUsers(
+        UserRepository $userRepository,
         SerializerInterface $serializer,
         Security $security,
         Request $request,
-        TagAwareCacheInterface $cachePool
+        TagAwareCacheInterface $cachePool,
+        LoggerInterface $logger
     ): JsonResponse {
 
         /** @var Customer $customer  */
@@ -88,31 +91,32 @@ class CustomerController extends AbstractController
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 3);
 
-        $idCache = "getCustomerUsers-". $customer->getId() . '-' . $page . "-" . $limit;
+        $idCache = "getUsers-". $customer->getId() . '-' . $page . "-" . $limit;
 
         $customerId = $customer->getId();
 
-        $jsonCustomerUsers = $cachePool->get($idCache, function (ItemInterface $item) use ($customerRepository, $page, $customerId, $limit, $serializer) {
-            echo('pas encore en cache');
-            $item->tag('customerUsersCache');
-            $customersUsersList = $customerRepository->findAllCustomerUsersWithPagination($page, $customerId, $limit);
+        $jsonUsers = $cachePool->get($idCache, function (ItemInterface $item) use ($userRepository, $page, $customerId, $limit, $serializer, $logger) {
+            $logger->notice('cache miss');
+            $item->tag('UsersCache');
+            $usersList = $userRepository->findAllUsersWithPagination($page, $customerId, $limit);
 
             $version = $this->versioningService->getVersion();
-            $context = SerializationContext::create()->setGroups(['getCustomerUsers']);
+            $context = SerializationContext::create()->setGroups(['getUsers']);
             $context->setVersion($version);
-            return $serializer->serialize($customersUsersList, 'json', $context);
+            return $serializer->serialize($usersList, 'json', $context);
         });
 
-        return new JsonResponse($jsonCustomerUsers, Response::HTTP_OK, [], true);
+        return new JsonResponse($jsonUsers, Response::HTTP_OK, [], true);
     }
 
     /**
-     * Users details
+     * Get user details
      *
      * @param UserRepository $userRepository
      * @param SerializerInterface $serializer
      * @param Security $security
      * @param TagAwareCacheInterface $cachePool
+     * @param LoggerInterface $logger
      * @return JsonResponse
      *
      */
@@ -124,47 +128,56 @@ class CustomerController extends AbstractController
             items: new OA\Items(
                 ref: new Model(
                     type:User::class,
-                    groups:["getCustomerUsersDetails"]
+                    groups:["getUsers"]
                 )
             )
         )
     )]
+    #[OA\Response(
+        response: 404,
+        description: "User not found"
+    )]
+    #[OA\Response(
+        response: 403,
+        description: "Access Denied"
+    )]
     #[OA\Tag(name:"Users")]
-    #[Route('/api/users/{id}', name: 'app_customers_users_details', methods:['GET'])]
-    #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour accèder aux utilisateurs")]
-    public function getCustomerUserDetail(
+    #[Route('/api/users/{id}', name: 'app_users_details', methods:['GET'])]
+    #[IsGranted('ROLE_CUSTOMER', message: "Accès refusé")]
+    public function getUserDetail(
         int $id,
         UserRepository $userRepository,
         SerializerInterface $serializer,
         Security $security,
-        TagAwareCacheInterface $cachePool
+        TagAwareCacheInterface $cachePool,
+        LoggerInterface $logger
     ): JsonResponse {
         $user = $userRepository->find($id);
 
         if(!$user) {
-            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "L'utilisateur n'existe pas.");
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Utilisateur inconnu.");
         }
 
         /** @var Customer $customer  */
         $customer = $security->getUser();
 
         if ($user->getCustomer() !== $customer) {
-            throw new HttpException(JsonResponse::HTTP_FORBIDDEN, "Vous n'avez pas les droits pour accéder à ces détails.");
+            throw new HttpException(JsonResponse::HTTP_FORBIDDEN, "Accès refusé");
         }
 
-        $idCache = "getCustomerUsersDetails-" . $id . "-" . $customer->getId();
+        $idCache = "getUsersDetails-" . $id . "-" . $customer->getId();
 
-        $jsonCustomerUsersDetails = $cachePool->get($idCache, function (ItemInterface $item) use ($user, $serializer) {
-            echo('pas encore en cache');
-            $item->tag('customerUsersDetailsCache');
+        $jsonUsersDetails = $cachePool->get($idCache, function (ItemInterface $item) use ($user, $serializer, $logger) {
+            $logger->notice('cache miss');
+            $item->tag('usersDetailsCache');
 
             $version = $this->versioningService->getVersion();
-            $context = SerializationContext::create()->setGroups(['getCustomerUsersDetails']);
+            $context = SerializationContext::create()->setGroups(['getUsers']);
             $context->setVersion($version);
             return $serializer->serialize($user, 'json', $context);
         });
 
-        return new JsonResponse($jsonCustomerUsersDetails, Response::HTTP_OK, [], true);
+        return new JsonResponse($jsonUsersDetails, Response::HTTP_OK, [], true);
     }
 
     /**
@@ -185,6 +198,7 @@ class CustomerController extends AbstractController
         path: '/api/users',
         summary: "Create a new user",
         requestBody: new OA\RequestBody(
+            required:true,
             content: new OA\JsonContent(
                 type: "object",
                 properties: [
@@ -199,7 +213,7 @@ class CustomerController extends AbstractController
             new OA\Response(
                 response: 201,
                 description: "User successfully created",
-                content: new OA\JsonContent(ref: new Model(type: User::class, groups: ["getCustomerUsers"]))
+                content: new OA\JsonContent(ref: new Model(type: User::class, groups: ["getUsers"]))
             ),
             new OA\Response(
                 response: 400,
@@ -212,9 +226,9 @@ class CustomerController extends AbstractController
         ]
     )]
     #[OA\Tag(name:"Users")]
-    #[Route('/api/users', name: 'app_customers_users_add', methods:['POST'])]
-    #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour créer un utilisateur")]
-    public function addCustomerUser(
+    #[Route('/api/users', name: 'app_users_add', methods:['POST'])]
+    #[IsGranted('ROLE_CUSTOMER', message: "Accès refusé")]
+    public function addUser(
         Request $request,
         UserRepository $userRepository,
         SerializerInterface $serializer,
@@ -251,18 +265,18 @@ class CustomerController extends AbstractController
         $em->persist($user);
         $em->flush();
 
-        $cachePool->invalidateTags(["customerUsersCache"]);
+        $cachePool->invalidateTags(["usersCache"]);
 
-        $context = SerializationContext::create()->setGroups(['getCustomerUsers']);
+        $context = SerializationContext::create()->setGroups(['getUsers']);
         $jsonUser = $serializer->serialize($user, 'json', $context);
 
-        $location = $urlGenerator->generate('app_customers_users_details', ['id' => $user->getId()], UrlGenerator::ABSOLUTE_URL);
+        $location = $urlGenerator->generate('app_users_details', ['id' => $user->getId()], UrlGenerator::ABSOLUTE_URL);
 
         return new JsonResponse($jsonUser, Response::HTTP_CREATED, ['Location' => $location], true);
     }
 
     /**
-     * Delete user
+     * Delete a user
      *
      * @param UserRepository $userRepository
      * @param EntityManagerInterface $em
@@ -276,13 +290,17 @@ class CustomerController extends AbstractController
         description: "User successfully deleted",
     )]
     #[OA\Response(
+        response: 403,
+        description: "Access Denied"
+    )]
+    #[OA\Response(
         response: 404,
         description: "User not found"
     )]
     #[OA\Tag(name:"Users")]
-    #[Route('/api/users/{id}', name: 'app_customers_users_delete', methods:['DELETE'])]
-    #[IsGranted('ROLE_CUSTOMER', message: "Vous n'avez pas les droits pour supprimer un utilisateur")]
-    public function deleteCustomerUser(
+    #[Route('/api/users/{id}', name: 'app_users_delete', methods:['DELETE'])]
+    #[IsGranted('ROLE_CUSTOMER', message: "Accès refusé")]
+    public function deleteUser(
         int $id,
         UserRepository $userRepository,
         EntityManagerInterface $em,
@@ -294,18 +312,120 @@ class CustomerController extends AbstractController
 
         $user = $userRepository->find($id);
 
-        if ($user->getCustomer() !== $customer) {
-            throw new HttpException(JsonResponse::HTTP_FORBIDDEN, "Vous n'avez pas les droits pour supprimer cet utilisateur.");
-        }
-
         if(!$user) {
-            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "L'utilisateur n'existe pas.");
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "Utilisateur inconnu.");
         }
 
-        $cachePool->invalidateTags(["customerUsersCache"]);
+
+        if ($user->getCustomer() !== $customer) {
+            throw new HttpException(JsonResponse::HTTP_FORBIDDEN, "Accès refusé");
+        }
+
+
+        $cachePool->invalidateTags(["usersCache"]);
         $em->remove($user);
         $em->flush();
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+    * Edit a user
+    *
+    * @param Request $request
+    * @param UserRepository $userRepository
+    * @param SerializerInterface $serializer
+    * @param EntityManagerInterface $em
+    * @param ValidatorInterface $validator
+    * @param Security $security
+    * @param TagAwareCacheInterface $cachePool
+    * @return JsonResponse
+    *
+    */
+    #[OA\Put(
+        path: '/api/users/{id}',
+        summary: "Edit a user",
+        requestBody: new OA\RequestBody(
+            required:true,
+            content: new OA\JsonContent(
+                type: "object",
+                properties: [
+                    new OA\Property(property: "username", type: "string", example: "Test"),
+                    new OA\Property(property: "first_name", type: "string", example: "test"),
+                    new OA\Property(property: "last_name", type: "string", example: "test"),
+                    new OA\Property(property: "email", type: "string", example: "test.test@gmail.com")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "User successfully edited",
+                content: new OA\JsonContent(ref: new Model(type: User::class, groups: ["getUsers"]))
+            ),
+            new OA\Response(
+                response: 400,
+                description: "Validation failed"
+            ),
+            new OA\Response(
+                response: 403,
+                description: "Access Denied"
+            ),
+            new OA\Response(
+                response: 409,
+                description: "User already exists"
+            )
+        ]
+    )]
+    #[OA\Tag(name:"Users")]
+    #[Route('/api/users/{id}', name: 'app_users_edit', methods:['PUT'])]
+    #[IsGranted('ROLE_CUSTOMER', message: "Accès refusé")]
+    public function editUser(
+        int $id,
+        Request $request,
+        UserRepository $userRepository,
+        SerializerInterface $serializer,
+        EntityManagerInterface $em,
+        ValidatorInterface $validator,
+        TagAwareCacheInterface $cachePool,
+        Security $security,
+    ): JsonResponse {
+        /** @var Customer $customer  */
+        $customer = $security->getUser();
+
+        $userData = $serializer->deserialize($request->getContent(), User::class, 'json');
+
+        $errors = $validator->validate($userData);
+
+        if ($userData->getCustomer() !== $customer) {
+            throw new HttpException(JsonResponse::HTTP_FORBIDDEN, "Accès refusé");
+        }
+
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
+
+        $existingUser = $userRepository->findOneByEmail($userData->getEmail());
+
+        if($existingUser && $existingUser->getId() !== $id) {
+            throw new HttpException(JsonResponse::HTTP_CONFLICT, "Un utilisateur avec cette adresse mail existe déjà.");
+        }
+
+        $user = $userRepository->find($id);
+        $user->setUsername(strtolower($userData->getUsername()));
+        $user->setFirstName(ucfirst($userData->getFirstName()));
+        $user->setLastName(ucfirst($userData->getLastName()));
+        $user->setEmail(strtolower($userData->getEmail()));
+        $user->setCustomer($customer);
+
+        $em->persist($user);
+        $em->flush();
+
+        $cachePool->invalidateTags(["usersCache"]);
+
+        $context = SerializationContext::create()->setGroups(['getUsers']);
+        $jsonUser = $serializer->serialize($user, 'json', $context);
+
+        return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
     }
 }
