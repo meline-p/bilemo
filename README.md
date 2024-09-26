@@ -43,14 +43,14 @@ BileMo API provides access to a catalog of high-end mobile phones.
 - `DATABASE_URL` : Database connection URL.
 - JWT Token: Create a `jwt` folder in `config` directory. In your GitBash terminal, generate a private and public key:
     private key: 
-        ```bash
-        openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
-        ```
+    ```bash
+    openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
+    ```
 
     public key: 
-        ```bash
-        openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
-        ```
+    ```bash
+    openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
+    ```
 
     Change `JWT_PASSPHRASE` to your passphrase
 
@@ -84,13 +84,11 @@ Access the application via your browser at http://localhost:8000.
 ## Cache
 
 This API uses `TagAwareCacheInterface` for cache management. To clear or invalidate the cache by tag, you can use the following command:
-
     ```bash
     php bin/console cache:clear
     ```
 
 Or to invalidate a specific tag:
-
     ```bash
     $cachePool->invalidateTags(['your_tag']);
     ```
