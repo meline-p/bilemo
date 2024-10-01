@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Customer;
-use App\Repository\CustomerRepository;
 use App\Repository\UserRepository;
 use App\Service\VersioningService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -393,11 +392,13 @@ class UserController extends AbstractController
         /** @var Customer $customer  */
         $customer = $security->getUser();
 
+        $user = $userRepository->find($id);
+
         $userData = $serializer->deserialize($request->getContent(), User::class, 'json');
 
         $errors = $validator->validate($userData);
 
-        if ($userData->getCustomer() !== $customer) {
+        if ($user->getCustomer() !== $customer) {
             throw new HttpException(JsonResponse::HTTP_FORBIDDEN, "Accès refusé");
         }
 
@@ -411,7 +412,6 @@ class UserController extends AbstractController
             throw new HttpException(JsonResponse::HTTP_CONFLICT, "Un utilisateur avec cette adresse mail existe déjà.");
         }
 
-        $user = $userRepository->find($id);
         $user->setUsername(strtolower($userData->getUsername()));
         $user->setFirstName(ucfirst($userData->getFirstName()));
         $user->setLastName(ucfirst($userData->getLastName()));

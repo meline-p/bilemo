@@ -32,6 +32,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  * )
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ORM\Table(name: '`user`')]
 class User
 {
@@ -59,10 +60,11 @@ class User
     #[Assert\Length(min: 1, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères", maxMessage: "Le titre ne peut pas faire plus de {{ limit }} caractères")]
     private ?string $last_name = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique:true)]
     #[Groups(["getUsers"])]
     #[Assert\NotBlank(message: "L'email de l'utilisateur est obligatoire")]
     #[Assert\Length(min: 1, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères", maxMessage: "Le titre ne peut pas faire plus de {{ limit }} caractères")]
+    #[Assert\Email(message: "L'email {{ value }} n'est pas un email valide.")]
     private ?string $email = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
