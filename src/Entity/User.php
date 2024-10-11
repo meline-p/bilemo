@@ -30,6 +30,14 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *      href = @Hateoas\Route("app_users_add"),
  *      exclusion = @Hateoas\Exclusion(groups = {"getUsers"})
  * )
+ * @Hateoas\Relation(
+ *      "update",
+ *      href = @Hateoas\Route(
+ *          "app_users_edit",
+ *          parameters = { "id" = "expr(object.getId())" }
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups = {"getUsers"})
+ * )
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
